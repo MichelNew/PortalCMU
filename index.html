@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CMU | Portal de Vinculación OCR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <style>
+    /* SISTEMA DE VARIABLES PARA CAMBIO TOTAL */
+    :root {
+      --bg-main: #f1f5f9; 
+      --bg-card: #ffffff; 
+      --bg-input: #ffffff;
+      --text-base: #1e293b; 
+      --text-muted: #64748b; 
+      --border: #e2e8f0;
+      --card-shadow: rgba(0, 0, 0, 0.05); 
+      --history-item: #f8fafc;
+      --accent: #4f46e5;
+    }
+
+    body.dark-mode {
+      --bg-main: #0f172a; 
+      --bg-card: #1e293b; 
+      --bg-input: #0f172a;
+      --text-base: #f1f5f9; 
+      --text-muted: #94a3b8; 
+      --border: #334155;
+      --card-shadow: rgba(0, 0, 0, 0.3); 
+      --history-item: #1e293b;
+      --accent: #818cf8;
+    }
+
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background-color: var(--bg-main); 
+      color: var(--text-base); 
+      transition: all 0.3s ease; 
+      overflow-x: hidden; 
+    }
+
+    .card-pro { 
+      background-color: var(--bg-card); 
+      border: 1px solid var(--border); 
+      box-shadow: 0 4px 6px -1px var(--card-shadow); 
+      border-radius: 1.5rem; 
+      transition: all 0.3s ease; 
+    }
+
+    /* BOTONES ESTILO UIVERSE ADAPTADOS */
+    .btn-tramite {
+      padding: 1.2em; 
+      font-size: 11px; 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+      font-weight: 700;
+      color: var(--text-base); 
+      background-color: var(--bg-card); 
+      border: 1px solid var(--border);
+      border-radius: 20px; 
+      box-shadow: 0px 5px 10px var(--card-shadow); 
+      transition: all 0.3s ease;
+      cursor: pointer; 
+      outline: none; 
+      width: 100%;
+    }
+
+    .btn-tramite:hover {
+      background-color: #23c483; 
+      box-shadow: 0px 10px 15px rgba(46, 229, 157, 0.4); 
+      color: #fff; 
+      transform: translateY(-5px);
+      border-color: transparent;
+    }
+
+    .btn-tramite.active {
+      background-color: var(--accent); 
+      color: #ffffff; 
+      box-shadow: 0px 8px 15px rgba(79, 70, 229, 0.4); 
+      transform: translateY(-2px); 
+      border-color: transparent;
+    }
+
+    /* ESTILO ADICIONAL PARA FASES DE CAMPO */
+    .fase-btn {
+      padding: 0.6em 1.4em; 
+      font-size: 10px; 
+      border-radius: 12px;
+      background: var(--bg-card); 
+      border: 1px solid var(--border);
+      transition: all 0.2s; 
+      cursor: pointer; 
+      font-weight: 800;
+      color: var(--text-base);
+    }
+
+    .fase-btn.active {
+      background: #10b981; 
+      color: white; 
+      border-color: transparent;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* PANTALLA DE CARGA CMU OFICIAL */
+    #loadingOverlay {
+      position: fixed; 
+      inset: 0; 
+      background: #ffffff; 
+      z-index: 1000;
+      display: none; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center;
+    }
+
+    .loader { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 15px; 
+    }
+
+    .dash, .spin { 
+      fill: none !important; 
+    } 
+    
+    .dash { 
+      animation: dashArray 2s ease-in-out infinite, dashOffset 2s linear infinite; 
+    }
+
+    .spin { 
+      animation: spinDashArray 2s ease-in-out infinite, spin 8s ease-in-out infinite, dashOffset 2s linear infinite; 
+      transform-origin: center; 
+    }
+
+    @keyframes dashArray { 
+      0% { stroke-dasharray: 0 1 359 0; } 
+      50% { stroke-dasharray: 0 359 1 0; } 
+      100% { stroke-dasharray: 359 1 0 0; } 
+    }
+
+    @keyframes spinDashArray { 
+      0% { stroke-dasharray: 270 90; } 
+      50% { stroke-dasharray: 0 360; } 
+      100% { stroke-dasharray: 270 90; } 
+    }
+
+    @keyframes dashOffset { 
+      0% { stroke-dashoffset: 365; } 
+      100% { stroke-dashoffset: 5; } 
+    }
+
+    @keyframes spin { 
+      0% { rotate: 0deg; } 
+      12.5%, 25% { rotate: 270deg; } 
+      37.5%, 50% { rotate: 540deg; } 
+      62.5%, 75% { rotate: 810deg; } 
+      87.5%, 100% { rotate: 1080deg; } 
+    }
+
+    /* ETIQUETAS FLOTANTES AZULES */
+    .input-group { 
+      position: relative; 
+      padding-top: 1.2rem; 
+    }
+
+    .input-pro { 
+      border: 1px solid var(--border); 
+      background-color: var(--bg-input); 
+      color: var(--text-base); 
+      border-radius: 0.6rem; 
+      padding: 0.6rem; 
+      outline: none; 
+      transition: all 0.2s; 
+      font-size: 0.85rem; 
+      width: 100%; 
+    }
+
+    .field-label {
+      position: absolute; 
+      top: 0; 
+      left: 0.5rem;
+      font-size: 0.7rem; 
+      font-weight: 800; 
+      color: #3b82f6; 
+      text-transform: uppercase; 
+      opacity: 0; 
+      transform: translateY(10px); 
+      transition: all 0.2s ease; 
+      pointer-events: none;
+    }
+
+    .has-value .field-label { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+
+    /* NOTIFICACIONES TOAST */
+    .toast { 
+      position: fixed; 
+      bottom: 24px; 
+      right: 24px; 
+      padding: 14px 28px; 
+      border-radius: 16px; 
+      color: white; 
+      font-weight: 800; 
+      font-size: 11px; 
+      z-index: 2000; 
+      box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2); 
+      animation: slideIn 0.4s; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+
+    .toast-success { background-color: #10b981 !important; }
+    .toast-error { background-color: #ef4444 !important; }
+
+    @keyframes slideIn { 
+      from { transform: translateX(120%); } 
+      to { transform: translateX(0); } 
+    }
+
+    .input-error { border-color: #ef4444 !important; animation: shake 0.3s ease-in-out; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+    .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
+    body.dark-mode .glass { background: rgba(15, 23, 42, 0.8); }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="loadingOverlay">
+    <div class="loader">
+      <svg height="0" width="0" class="absolute">
+        <defs>
+          <linearGradient y2="2" x2="0" y1="62" x1="0" id="colorC"><stop stop-color="#4B4B4B"></stop><stop stop-color="#757575" offset="1"></stop></linearGradient>
+          <linearGradient y2="2" x2="0" y1="62" x1="0" id="colorM"><stop stop-color="#007BFF"></stop><stop stop-color="#00D2FF" offset="1"></stop></linearGradient>
+          <linearGradient y2="2" x2="0" y1="62" x1="0" id="colorU"><stop stop-color="#00C853"></stop><stop stop-color="#69F0AE" offset="1"></stop></linearGradient>
+        </defs>
+      </svg>
+      <svg viewBox="0 0 64 64" height="80" width="80" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#colorC)" d="M 50,15 A 25,25 0 1 0 50,49" class="dash" pathLength="360"></path></svg>
+      <svg viewBox="0 0 64 64" height="80" width="80" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#colorM)" d="M 10,50 V 15 L 32,35 L 54,15 V 50" class="spin" pathLength="360"></path></svg>
+      <svg viewBox="0 0 64 64" height="80" width="80" class="inline-block"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#colorU)" d="M 15,15 V 40 A 15,15 0 0 0 49,40 V 15" class="dash" pathLength="360"></path></svg>
+    </div>
+    <p class="text-black text-[12px] mt-12 uppercase tracking-[0.5em] font-black italic">Portal de Vinculación OCR</p>
+  </div>
+
+  <div id="loginModal" class="fixed inset-0 flex items-center justify-center z-[100] bg-cover bg-center" style="background-image: url('img/fondo.jpg');">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]"></div>
+    <div class="glass p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center card-pro">
+        <img src="img/logo.png" class="h-24 mx-auto mb-4 object-contain">
+        <h2 class="text-2xl font-bold text-indigo-400 italic">Sistema de Vinculación</h2>
+        <form id="loginForm" class="space-y-5 mt-6 text-left">
+            <input type="text" id="username" class="input-pro" placeholder="Usuario" required>
+            <input type="password" id="password" class="input-pro" placeholder="Contraseña" required>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold uppercase text-xs transition-transform active:scale-95">Iniciar Sesión</button>
+        </form>
+    </div>
+  </div>
+
+  <nav id="navBar" class="card-pro m-4 p-4 sticky top-0 z-50 hidden border-b rounded-2xl">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="img/logo.png" class="h-10 w-auto">
+            <h1 class="font-black text-lg text-indigo-500 italic hidden sm:block uppercase">CMU | Vinculación</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="themeToggle" class="px-4 py-2 border rounded-full text-[10px] font-black uppercase transition-all hover:bg-indigo-500 hover:text-white border-indigo-500 text-indigo-500">Cambiar Tema</button>
+            <span id="roleBadge" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase"></span>
+            <button id="logoutBtn" class="text-slate-400 hover:text-red-600 text-[10px] font-black uppercase ml-2">Salir</button>
+        </div>
+    </div>
+  </nav>
+
+  <main id="appContent" class="hidden p-8 max-w-7xl mx-auto">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <button id="btn-presentacion" onclick="setTramite('presentacion')" class="btn-tramite active">📄 Presentación</button>
+        <button id="btn-aceptacion" onclick="setTramite('aceptacion')" class="btn-tramite">✔️ Aceptación</button>
+        <button id="btn-termino" onclick="setTramite('termino')" class="btn-tramite">🎓 Término</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <button id="proc-profesionales" onclick="setProceso('profesionales')" class="btn-tramite active">💼 Pract. Profesionales</button>
+        <button id="proc-social" onclick="setProceso('social')" class="btn-tramite">🤝 Servicio Social</button>
+        <button id="proc-campo" onclick="setProceso('campo')" class="btn-tramite">🌲 Pract. de Campo</button>
+    </div>
+
+    <div id="campoFases" class="hidden flex justify-center gap-4 mb-8 p-5 card-pro animate-in">
+        <span class="text-[10px] font-black uppercase self-center mr-4 text-indigo-500">Selecciona la Fase:</span>
+        <button class="fase-btn active" onclick="setFase('I')">Fase I</button>
+        <button class="fase-btn" onclick="setFase('II')">Fase II</button>
+        <button class="fase-btn" onclick="setFase('III')">Fase III</button>
+        <button class="fase-btn" onclick="setFase('IV')">Fase IV</button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="space-y-8">
+            <section class="card-pro p-6 shadow-sm">
+                <h3 class="font-black text-[10px] text-indigo-500 uppercase tracking-widest mb-6 italic text-center">01. Escaneo Digital OCR</h3>
+                <input type="file" id="imgInput" accept="image/*" class="text-[10px] mb-4 w-full cursor-pointer">
+                <div id="previewBox" class="card-pro rounded-2xl border-2 border-dashed h-64 flex items-center justify-center bg-slate-50/10 overflow-hidden relative shadow-inner">
+                    <div id="guideOverlay" class="absolute inset-0 flex items-center justify-center p-4">
+                        <img src="img/Kit_guia.jpg" class="h-full w-full object-contain opacity-30 grayscale">
+                    </div>
+                    <img id="imgPreview" class="hidden h-full object-contain z-10">
+                </div>
+                <button id="btnRunOCR" disabled class="w-full mt-6 bg-slate-400 text-white py-3 rounded-xl font-black text-xs cursor-not-allowed opacity-50 transition-all uppercase">Procesar OCR</button>
+                <div id="ocrStatus" class="mt-4 text-[9px] font-black text-center uppercase italic text-indigo-400 h-4"></div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-1">
+            <section class="card-pro p-8 border-t-[6px] border-indigo-600">
+                <h3 class="font-black text-[10px] uppercase tracking-widest mb-8 text-center italic">02. Validación de Datos</h3>
+                <div id="fieldsContainer" class="space-y-2">
+                    <div class="input-group" id="group-nombre">
+                        <span class="field-label">Nombre del Alumno</span>
+                        <input class="input-pro font-bold uppercase" id="nombre" placeholder="Nombre Alumno">
+                    </div>
+                    <div class="input-group" id="group-licenciatura">
+                        <span class="field-label">Licenciatura</span>
+                        <input class="input-pro" id="licenciatura" placeholder="Licenciatura">
+                    </div>
+                    <div class="input-group" id="group-control">
+                        <span class="field-label">Matrícula Institucional</span>
+                        <input class="input-pro font-mono text-indigo-500" id="control" placeholder="Matrícula">
+                    </div>
+                    <div class="input-group" id="group-dependencia">
+                        <span class="field-label">Institución Receptora</span>
+                        <input class="input-pro italic" id="dependencia" placeholder="Institución Receptora">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="input-group" id="group-inicio">
+                            <span class="field-label">Fecha Inicio</span>
+                            <input class="input-pro" id="inicio" placeholder="Inicio">
+                        </div>
+                        <div class="input-group" id="group-termino">
+                            <span class="field-label">Fecha Término</span>
+                            <input class="input-pro" id="termino" placeholder="Término">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-10">
+                    <button id="btnSave" class="bg-emerald-500 text-white text-[10px] py-3 rounded-xl font-black hover:bg-emerald-600 transition-all uppercase">Guardar</button>
+                    <button id="btnDelete" class="bg-slate-200 text-slate-600 text-[10px] py-3 rounded-xl font-black hover:bg-slate-300 transition-all uppercase shadow-inner">Limpiar</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="space-y-8">
+            <section class="bg-indigo-900 p-8 rounded-3xl shadow-2xl text-white">
+                <h3 class="font-black text-[10px] text-indigo-300 uppercase tracking-widest mb-6 italic">03. Salida Oficial</h3>
+                <p id="currentDocType" class="text-[9px] font-black text-indigo-100 bg-indigo-800 px-4 py-1.5 rounded-full w-fit mb-8 italic shadow-inner"></p>
+                <div class="space-y-4">
+                    <button id="btnPreviewDoc" class="w-full bg-white text-indigo-900 py-3 rounded-xl text-xs font-black hover:bg-indigo-50 transition-all uppercase shadow-lg">Previsualizar</button>
+                    <button id="btnDownloadDoc" class="w-full border-2 border-indigo-400 text-white py-3 rounded-xl text-xs font-black hover:bg-indigo-800 transition-all uppercase">Generar PDF</button>
+                </div>
+            </section>
+            <section class="card-pro p-6">
+                <h3 class="font-black text-[10px] uppercase tracking-widest mb-4 italic text-center text-muted-pro">Historial</h3>
+                <div id="docList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
+            </section>
+        </div>
+
+    </div>
+  </main>
+
+  <div id="previewModal" class="fixed inset-0 bg-slate-900/95 flex items-center justify-center z-[200] hidden backdrop-blur-md p-4">
+    <div class="bg-white p-12 rounded-[3.5rem] max-w-2xl w-full shadow-2xl relative overflow-hidden">
+        <div id="captureArea" class="relative bg-white p-12 rounded-3xl border shadow-inner">
+            <div class="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none z-0">
+                <img src="img/logo.png" class="w-96 rotate-12">
+            </div>
+            <div id="previewContent" class="relative z-10 whitespace-pre-wrap font-serif text-[11px] h-[28rem] overflow-y-auto text-slate-700 leading-relaxed custom-scrollbar"></div>
+            <div class="absolute bottom-6 right-10 z-20 flex flex-col items-center bg-white p-1 rounded-lg border shadow-sm">
+                <img id="qrImg" src="" class="w-16 h-16 rounded bg-white">
+                <p class="text-[6px] font-black text-indigo-900 text-center mt-1 uppercase italic">Validación CMU</p>
+            </div>
+        </div>
+        <button onclick="document.getElementById('previewModal').classList.add('hidden')" class="mt-8 w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs hover:bg-black transition-all uppercase italic">Cerrar</button>
+    </div>
+  </div>
+
+  <div id="toastContainer"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
